@@ -136,11 +136,11 @@ public interface EquipmentScreenshotConfig extends Config
 
 	@ConfigItem(
 		position = 2,
-		keyName = "textColor",
+		keyName = "fontColor",
 		name = "Text color",
 		description = "The color of the text used"
 	)
-	default Color textColor()
+	default Color fontColor()
 	{
 		return Color.YELLOW;
 	}

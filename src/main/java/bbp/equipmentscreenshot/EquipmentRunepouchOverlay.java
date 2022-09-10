@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2017, Tyler <http://github.com/tylerthardy>
+ * Copyright (c) 2022, Adam <Adam@sigterm.info>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,31 +25,35 @@
  */
 package bbp.equipmentscreenshot;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import javax.inject.Inject;
 import net.runelite.api.Client;
+import net.runelite.api.EnumComposition;
+import net.runelite.api.EnumID;
 import net.runelite.api.Point;
 import net.runelite.api.Varbits;
+import net.runelite.api.annotations.Varbit;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
 
-import net.runelite.client.game.RunepouchRune;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.OverlayUtil;
 
 class EquipmentRunepouchOverlay
 {
-	private static final Varbits[] AMOUNT_VARBITS =
-			{
-					Varbits.RUNE_POUCH_AMOUNT1, Varbits.RUNE_POUCH_AMOUNT2, Varbits.RUNE_POUCH_AMOUNT3
-			};
-	private static final Varbits[] RUNE_VARBITS =
-			{
-					Varbits.RUNE_POUCH_RUNE1, Varbits.RUNE_POUCH_RUNE2, Varbits.RUNE_POUCH_RUNE3
-			};
+	private static final int NUM_SLOTS = 4;
+	private static final int[] AMOUNT_VARBITS = {
+			Varbits.RUNE_POUCH_AMOUNT1, Varbits.RUNE_POUCH_AMOUNT2, Varbits.RUNE_POUCH_AMOUNT3, Varbits.RUNE_POUCH_AMOUNT4
+	};
+	private static final int[] RUNE_VARBITS = {
+			Varbits.RUNE_POUCH_RUNE1, Varbits.RUNE_POUCH_RUNE2, Varbits.RUNE_POUCH_RUNE3, Varbits.RUNE_POUCH_RUNE4
+	};
 	private static final Dimension IMAGE_SIZE = new Dimension(11, 11);
+	private BufferedImage[] runeIcons = new BufferedImage[0];
 
 	@Inject
 	private Client client;
@@ -71,55 +76,149 @@ class EquipmentRunepouchOverlay
 		if (configManager.getConfiguration("runepouch", "runeicons", Boolean.class) != null)
 			showIcons = configManager.getConfiguration("runepouch", "runeicons", Boolean.class);
 
+		final int[] runeIds = new int[NUM_SLOTS];
+		final int[] amounts = new int[NUM_SLOTS];
+		final EnumComposition runepouchEnum = client.getEnum(EnumID.RUNEPOUCH_RUNE);
+		int num = 0;
+
+		for (int i = 0; i < NUM_SLOTS; i++)
+		{
+			@Varbit int amountVarbit = AMOUNT_VARBITS[i];
+			int amount = client.getVarbitValue(amountVarbit);
+			amounts[i] = amount;
+
+			@Varbit int runeVarbit = RUNE_VARBITS[i];
+			int runeId = client.getVarbitValue(runeVarbit);
+			runeIds[i] = runeId;
+
+			if (runeId != 0 && amount > 0)
+			{
+				++num;
+			}
+		}
+
+		if (num == 0)
+		{
+			return;
+		}
+
+		if (num < 4)
+		{
+			renderList(graphics, location, runepouchEnum, runeIds, amounts);
+		}
+		else
+		{
+			renderGrid(graphics, location, runepouchEnum, runeIds, amounts);
+		}
+	}
+
+	private void renderList(Graphics2D graphics, Point location, EnumComposition runepouchEnum, int[] runeIds, int[] amounts)
+	{
 		graphics.setFont(FontManager.getRunescapeSmallFont());
 
-		for (int i = 0; i < AMOUNT_VARBITS.length; i++)
+		int runeNum = -1;
+		for (int i = 0; i < NUM_SLOTS; ++i)
 		{
-			Varbits amountVarbit = AMOUNT_VARBITS[i];
+			final int runeId = runeIds[i];
+			final int amount = amounts[i];
 
-			int amount = client.getVar(amountVarbit);
-			if (amount <= 0)
+			if (runeId == 0 || amount <= 0)
+			{
 				continue;
+			}
 
-			Varbits runeVarbit = RUNE_VARBITS[i];
-			int runeId = client.getVar(runeVarbit);
-			RunepouchRune rune = RunepouchRune.getRune(runeId);
-			if (rune == null)
-				continue;
+			++runeNum;
 
-			int hOffset = (showIcons ? 11 : 4);
-			int vOffset = 12 + (graphics.getFontMetrics().getHeight() - 1) * i;
-			util.drawTextWithShadow(graphics, location, hOffset, vOffset, "" + formatNumber(amount));
+			final String text = formatNumber(amount);
+			final int textX = location.getX() + 11;
+			final int textY = location.getY() + 12 + (graphics.getFontMetrics().getHeight() - 1) * runeNum;
 
-			if (!showIcons)
-				continue;
+			graphics.setColor(Color.BLACK);
+			graphics.drawString(text, textX + 1, textY + 1);
 
-			BufferedImage image = getRuneImage(rune);
+			graphics.setColor(config.fontColor());
+			graphics.drawString(text, textX, textY);
+
+			BufferedImage image = getRuneImage(runepouchEnum, runeId);
 			if (image != null)
 			{
 				OverlayUtil.renderImageLocation(graphics,
-						new Point(location.getX() - 1, location.getY() + graphics.getFontMetrics().getHeight() * i - 1),
+						new Point(
+								location.getX() - 1,
+								location.getY() + graphics.getFontMetrics().getHeight() * runeNum - 1
+						),
 						image);
 			}
 		}
 	}
 
-	private BufferedImage getRuneImage(RunepouchRune rune)
+	private void renderGrid(Graphics2D graphics, Point location, EnumComposition runepouchEnum, int[] runeIds, int[] amounts)
 	{
-		BufferedImage runeImg = rune.getImage();
-		if (runeImg != null)
-			return runeImg;
+		for (int i = 0; i < NUM_SLOTS; ++i)
+		{
+			final int runeId = runeIds[i];
+			final int amount = amounts[i];
 
-		runeImg = itemManager.getImage(rune.getItemId());
+			if (runeId == -1 || amount <= 0)
+			{
+				continue;
+			}
+
+			final int iconX = location.getX() + 2 + (i == 1 || i == 3 ? IMAGE_SIZE.width + 2 /* pad */ + 2 /* bar offset */ : 0);
+			final int iconY = location.getY() + 5 + (i >= 2 ? IMAGE_SIZE.height + 2 /* pad */ : 0);
+
+			BufferedImage image = getRuneImage(runepouchEnum, runeId);
+			if (image != null)
+			{
+				OverlayUtil.renderImageLocation(graphics,
+						new Point(iconX, iconY),
+						image);
+			}
+
+			final int height;
+			final Color color;
+
+			if (amount < 1000)
+			{
+				// with <1k runes, the bar is shown in red with 100 increments
+				height = amount / 100;
+				color = Color.RED;
+			}
+			else
+			{
+				// with >=1k runes, the bar is shown in 1000 increments capped at 10k
+				height = Math.min(10, amount / 1000);
+				color = Color.GREEN;
+			}
+
+			graphics.setColor(color);
+			graphics.fillRect(iconX + IMAGE_SIZE.width, iconY + 1 + (10 - height), 2, height);
+		}
+	}
+
+	private BufferedImage getRuneImage(EnumComposition runepouchEnum, int runeId)
+	{
+		if (runeId < runeIcons.length && runeIcons[runeId] != null)
+		{
+			return runeIcons[runeId];
+		}
+
+		BufferedImage runeImg = itemManager.getImage(runepouchEnum.getIntValue(runeId));
 		if (runeImg == null)
+		{
 			return null;
+		}
 
 		BufferedImage resizedImg = new BufferedImage(IMAGE_SIZE.width, IMAGE_SIZE.height, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = resizedImg.createGraphics();
 		g.drawImage(runeImg, 0, 0, IMAGE_SIZE.width, IMAGE_SIZE.height, null);
 		g.dispose();
 
-		rune.setImage(resizedImg);
+		if (runeId >= runeIcons.length)
+		{
+			runeIcons = Arrays.copyOf(runeIcons, runeId + 1);
+		}
+		runeIcons[runeId] = resizedImg;
 		return resizedImg;
 	}
 

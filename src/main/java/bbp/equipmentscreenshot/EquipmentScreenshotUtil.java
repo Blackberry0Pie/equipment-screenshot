@@ -252,7 +252,7 @@ class EquipmentScreenshotUtil
 		g2d.setColor(Color.black);
 		g2d.drawString(str, p.x + 1, p.y + 1);
 
-		g2d.setColor(config.textColor());
+		g2d.setColor(config.fontColor());
 		g2d.drawString(str, p.x, p.y);
 	}
 

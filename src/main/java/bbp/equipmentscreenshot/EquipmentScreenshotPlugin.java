@@ -510,7 +510,7 @@ public class EquipmentScreenshotPlugin extends Plugin
 						int x = 16 /*horizontal offset*/ + ITEM_H_SIZE * (i % INV_ROW_SIZE);
 						int y = 8 /*vertical offset*/ + ITEM_V_SIZE * (i / INV_ROW_SIZE);
 						g2d.drawImage(image, null, x, y);
-						if (config.runepouchOverlay() && (itemId == ItemID.RUNE_POUCH || itemId == ItemID.RUNE_POUCH_L))
+						if (config.runepouchOverlay() && (itemId == ItemID.RUNE_POUCH || itemId == ItemID.RUNE_POUCH_L || itemId == ItemID.DIVINE_RUNE_POUCH))
 						{
 							equipmentRunepouchOverlay.renderRunepouchOverlay(g2d, new net.runelite.api.Point(x, y));
 						}
@@ -700,7 +700,7 @@ public class EquipmentScreenshotPlugin extends Plugin
 			}
 
 			g2d.setFont(FontManager.getRunescapeSmallFont());
-			g2d.setColor(config.textColor());
+			g2d.setColor(config.fontColor());
 
 			final BufferedImage MACIC_ICON = util.getCroppedImageFromSpriteID(SpriteID.SKILL_MAGIC, useResourcePack);
 			final BufferedImage RANGED_ICON = util.getCroppedImageFromSpriteID(SpriteID.SKILL_RANGED, useResourcePack);
