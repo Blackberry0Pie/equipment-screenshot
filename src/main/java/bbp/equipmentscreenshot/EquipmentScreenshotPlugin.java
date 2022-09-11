@@ -394,7 +394,7 @@ public class EquipmentScreenshotPlugin extends Plugin
 		dartID = 0;
 		dartCount = 0;
 		scaleCount = 0;
-		attackStyleVarbit = client.getVar(VarPlayer.ATTACK_STYLE);
+		attackStyleVarbit = client.getVarpValue(VarPlayer.ATTACK_STYLE);
 	}
 
 	@Override
@@ -448,7 +448,7 @@ public class EquipmentScreenshotPlugin extends Plugin
 	@Subscribe
 	public void onVarbitChanged(VarbitChanged event)
 	{
-		int currentAttackStyleVarbit = client.getVar(VarPlayer.ATTACK_STYLE);
+		int currentAttackStyleVarbit = client.getVarpValue(VarPlayer.ATTACK_STYLE);
 		if (attackStyleVarbit != currentAttackStyleVarbit)
 			attackStyleVarbit = currentAttackStyleVarbit;
 	}

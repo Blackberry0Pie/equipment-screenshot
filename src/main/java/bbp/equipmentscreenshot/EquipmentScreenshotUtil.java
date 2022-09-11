@@ -39,6 +39,8 @@ import net.runelite.api.EquipmentInventorySlot;
 import net.runelite.api.Item;
 import net.runelite.api.ItemComposition;
 import net.runelite.api.ItemContainer;
+import net.runelite.api.SpriteID;
+import net.runelite.api.SpritePixels;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SpriteManager;
 
@@ -57,6 +59,7 @@ class EquipmentScreenshotUtil
 	private EquipmentScreenshotConfig config;
 
 	static final int EQUIPMENT_PADDING = 2;
+	private Map<Integer, SpritePixels> spriteOverrides = null;
 
 	private static final Map<EquipmentInventorySlot, Point> EQUIPMENT_ICON_OFFSETS = new ImmutableMap.Builder<EquipmentInventorySlot, Point>().
 			put(EquipmentInventorySlot.HEAD, new Point(6, 4)).
@@ -90,16 +93,19 @@ class EquipmentScreenshotUtil
 	BufferedImage getImageFromSpriteID(int spriteID, boolean crop, boolean useResourcePack)
 	{
 		BufferedImage bi = null;
-		if (useResourcePack && client.getSpriteOverrides().get(spriteID) != null)
-			bi = copy(client.getSpriteOverrides().get(spriteID).toBufferedImage());
-		if (crop)
-			bi = trimImage(bi);
-		if (bi == null)
+		spriteOverrides = client.getSpriteOverrides();
+		if (useResourcePack && spriteOverrides.containsKey(spriteID) && spriteOverrides.get(spriteID) != null)
+		{
+			bi = copy(spriteOverrides.get(spriteID).toBufferedImage());
+		}
+		else
 		{
 			final BufferedImage sprite = spriteManager.getSprite(spriteID, 0);
 			if (sprite != null)
 				bi = copy(sprite);
 		}
+		if (crop)
+			bi = trimImage(bi);
 		return bi;
 	}
 
@@ -111,7 +117,9 @@ class EquipmentScreenshotUtil
 	void drawEquipmentIcon(Graphics2D g2d, EquipmentInventorySlot eis, Point p, Map<EquipmentInventorySlot, BufferedImage> EQUIPMENT_ICONS, boolean useResourcePack)
 	{
 		Point iconOffset = new Point(0, 0);
-		if (!useResourcePack)
+		spriteOverrides = client.getSpriteOverrides();
+		boolean resourcePackLoaded = spriteOverrides.containsKey(SpriteID.EQUIPMENT_SLOT_HEAD);
+		if (!useResourcePack || !resourcePackLoaded)
 			iconOffset = EQUIPMENT_ICON_OFFSETS.get(eis);
 		BufferedImage bi = EQUIPMENT_ICONS.get(eis);
 		g2d.drawImage(bi, null, p.x + EQUIPMENT_PADDING + iconOffset.x, p.y + EQUIPMENT_PADDING + iconOffset.y);
