@@ -55,10 +55,10 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.widgets.ComponentID;
+import net.runelite.api.widgets.InterfaceID;
 import net.runelite.api.widgets.JavaScriptCallback;
 import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetID;
-import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.api.widgets.WidgetType;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
@@ -80,8 +80,7 @@ import net.runelite.http.api.item.ItemStats;
 @PluginDescriptor(
 	name = "Equipment Screenshot",
 	description = "Takes screenshots of inventory and equipt items",
-	tags = {"items", "inventory", "equipment", "screenshot"},
-	enabledByDefault = false
+	tags = {"items", "inventory", "equipment", "screenshot"}
 )
 @Slf4j
 public class EquipmentScreenshotPlugin extends Plugin
@@ -136,10 +135,23 @@ public class EquipmentScreenshotPlugin extends Plugin
 	private static final List<Integer> SNOWFLAKE_RANGED_WEAPONS = new ImmutableList.Builder<Integer>().
 			add(ItemID.CRYSTAL_BOW).
 			add(ItemID.BOW_OF_FAERDHINEN).
+			add(ItemID.BOW_OF_FAERDHINEN_C).
+			add(ItemID.BOW_OF_FAERDHINEN_C_25869).
+			add(ItemID.BOW_OF_FAERDHINEN_C_25884).
+			add(ItemID.BOW_OF_FAERDHINEN_C_25886).
+			add(ItemID.BOW_OF_FAERDHINEN_C_25888).
+			add(ItemID.BOW_OF_FAERDHINEN_C_25890).
+			add(ItemID.BOW_OF_FAERDHINEN_C_25892).
+			add(ItemID.BOW_OF_FAERDHINEN_C_25894).
+			add(ItemID.BOW_OF_FAERDHINEN_C_25896).
 			add(ItemID.CRAWS_BOW).
 			add(ItemID.CRAWS_BOW_U).
+			add(ItemID.WEBWEAVER_BOW).
+			add(ItemID.WEBWEAVER_BOW_U).
 			add(ItemID.TOXIC_BLOWPIPE).
 			add(ItemID.TOXIC_BLOWPIPE_EMPTY).
+			add(ItemID.BLAZING_BLOWPIPE).
+			add(ItemID.BLAZING_BLOWPIPE_EMPTY).
 			build();
 
 	private static final List<Integer> SALAMANDERS = new ImmutableList.Builder<Integer>().
@@ -147,6 +159,7 @@ public class EquipmentScreenshotPlugin extends Plugin
 			add(ItemID.ORANGE_SALAMANDER).
 			add(ItemID.RED_SALAMANDER).
 			add(ItemID.BLACK_SALAMANDER).
+			add(ItemID.TECU_SALAMANDER).
 			build();
 
 	private static final List<Integer> THROWN_WEAPONS = new ImmutableList.Builder<Integer>().
@@ -238,6 +251,10 @@ public class EquipmentScreenshotPlugin extends Plugin
 			add(ItemID.BLACK_CHINCHOMPA).
 			add(ItemID.HOLY_WATER).
 			add(ItemID.TOKTZXILUL).
+			add(ItemID.ECLIPSE_ATLATL).
+			add(ItemID.HUNTERS_SPEAR).
+			add(ItemID.TONALZTICS_OF_RALOS).
+			add(ItemID.TONALZTICS_OF_RALOS_UNCHARGED).
 			build();
 
 	private static final Map<Integer, Double> WEIGHT_REDUCING_EQUIPMENT = new ImmutableMap.Builder<Integer, Double>().
@@ -320,16 +337,23 @@ public class EquipmentScreenshotPlugin extends Plugin
 			put(ItemID.GRACEFUL_LEGS_25080, 6d).
 			put(ItemID.GRACEFUL_GLOVES_25083, 3d).
 			put(ItemID.GRACEFUL_BOOTS_25086, 4d).
+			//Quest Speedrunning/Adventurer's graceful
+			put(ItemID.GRACEFUL_HOOD_27446, 3d).
+			put(ItemID.GRACEFUL_CAPE_27449, 4d).
+			put(ItemID.GRACEFUL_TOP_27452, 5d).
+			put(ItemID.GRACEFUL_LEGS_27455, 6d).
+			put(ItemID.GRACEFUL_GLOVES_27458, 3d).
+			put(ItemID.GRACEFUL_BOOTS_27461, 4d).
 			build();
 
 	private static final String MENU_TARGET = "Equipment";
 	private static final String TAKE_SCREENSHOT = "Screenshot";
 	private static final WidgetMenuOption FIXED_EQUIPMENT_TAB_SCREENSHOT = new WidgetMenuOption(TAKE_SCREENSHOT,
-			MENU_TARGET, WidgetInfo.FIXED_VIEWPORT_EQUIPMENT_TAB);
+			MENU_TARGET, ComponentID.FIXED_VIEWPORT_EQUIPMENT_TAB);
 	private static final WidgetMenuOption RESIZABLE_EQUIPMENT_TAB_SCREENSHOT = new WidgetMenuOption(TAKE_SCREENSHOT,
-			MENU_TARGET, WidgetInfo.RESIZABLE_VIEWPORT_EQUIPMENT_TAB);
+			MENU_TARGET, ComponentID.RESIZABLE_VIEWPORT_EQUIPMENT_TAB);
 	private static final WidgetMenuOption BOTTOM_LINE_INVENTORY_SCREENSHOT = new WidgetMenuOption(TAKE_SCREENSHOT,
-			MENU_TARGET, WidgetInfo.RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB);
+			MENU_TARGET, ComponentID.RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB);
 
 	private Widget button = null;
 	private boolean useResourcePack = false;
@@ -472,7 +496,7 @@ public class EquipmentScreenshotPlugin extends Plugin
 	@Subscribe
 	public void onWidgetLoaded(WidgetLoaded event)
 	{
-		if (event.getGroupId() != WidgetID.EQUIPMENT_GROUP_ID)
+		if (event.getGroupId() != InterfaceID.EQUIPMENT)
 		{
 			return;
 		}
@@ -841,7 +865,7 @@ public class EquipmentScreenshotPlugin extends Plugin
 		}
 
 		if (frankensteinsMonster != null)
-			imageCapture.takeScreenshot(frankensteinsMonster, "Equipment-", config.notifyWhenTaken(), config.uploadScreenshot());
+			imageCapture.saveScreenshot(frankensteinsMonster,"Equipment-", null, config.notifyWhenTaken(), true);
 	}
 
 	private boolean isResourcePackActive()
@@ -897,7 +921,7 @@ public class EquipmentScreenshotPlugin extends Plugin
 			return;
 		}
 
-		Widget parent = client.getWidget(WidgetInfo.EQUIPMENT);
+		Widget parent = client.getWidget(ComponentID.EQUIPMENT_INVENTORY_ITEM_CONTAINER);
 		if (parent == null)
 		{
 			return;

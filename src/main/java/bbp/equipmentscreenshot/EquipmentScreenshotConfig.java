@@ -30,7 +30,6 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
-import net.runelite.client.util.ImageUploadStyle;
 
 @ConfigGroup("equipmentscreenshot")
 public interface EquipmentScreenshotConfig extends Config
@@ -42,17 +41,6 @@ public interface EquipmentScreenshotConfig extends Config
 		closedByDefault = true
 	)
 	String equipmentStats = "equipmentStats";
-
-	@ConfigItem(
-		position = 0,
-		keyName = "uploadScreenshot",
-		name = "Upload equipment screenshot",
-		description = "Uploads the equipment screenshot to Imgur or the clipboard"
-	)
-	default ImageUploadStyle uploadScreenshot()
-	{
-		return ImageUploadStyle.CLIPBOARD;
-	}
 
 	@ConfigItem(
 		position = 1,
