@@ -32,8 +32,10 @@ import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
@@ -84,6 +86,20 @@ public class EquipmentScreenshotPlugin extends Plugin
 	private static final int ITEM_V_SIZE = Constants.ITEM_SPRITE_HEIGHT + 4 /*vertical padding*/;
 	private static final int SPELLBOOK_VARBIT = 4070;
 	private static final int COLUMN_WIDTH = 20; //actually 28 but we're cropping the side off
+	private static final Set<EquipmentInventorySlot> SANCTIONED_BODYPARTS = EnumSet.of(
+			EquipmentInventorySlot.HEAD,
+			EquipmentInventorySlot.CAPE,
+			EquipmentInventorySlot.AMULET,
+			EquipmentInventorySlot.WEAPON,
+			EquipmentInventorySlot.BODY,
+			EquipmentInventorySlot.SHIELD,
+			EquipmentInventorySlot.LEGS,
+			EquipmentInventorySlot.GLOVES,
+			EquipmentInventorySlot.BOOTS,
+			EquipmentInventorySlot.RING,
+			EquipmentInventorySlot.AMMO
+	);
+
 	private static final Map<EquipmentInventorySlot, Point> EQUIPMENT_ICON_LOCATIONS = new ImmutableMap.Builder<EquipmentInventorySlot, Point>().
 			put(EquipmentInventorySlot.HEAD, new Point(77, 4)).
 			put(EquipmentInventorySlot.CAPE, new Point(36, 43)).
@@ -571,6 +587,8 @@ public class EquipmentScreenshotPlugin extends Plugin
 		Point p;
 		for (EquipmentInventorySlot eis : EquipmentInventorySlot.values())
 		{
+			if (!SANCTIONED_BODYPARTS.contains(eis))
+				continue;
 			p = new Point(EQUIPMENT_ICON_LOCATIONS.get(eis).getLocation());
 			g2d.drawImage(EQUIPMENT_SLOT, null, p.x, p.y);
 			Item item = null;
