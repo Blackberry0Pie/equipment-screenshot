@@ -54,6 +54,7 @@ import net.runelite.api.VarPlayer;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.VarbitChanged;
+import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.InterfaceID;
@@ -74,8 +75,8 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.util.ImageCapture;
 import net.runelite.client.util.Text;
-import net.runelite.http.api.item.ItemEquipmentStats;
-import net.runelite.http.api.item.ItemStats;
+import net.runelite.client.game.ItemEquipmentStats;
+import net.runelite.client.game.ItemStats;
 
 @PluginDescriptor(
 	name = "Equipment Screenshot",
@@ -522,10 +523,10 @@ public class EquipmentScreenshotPlugin extends Plugin
 				if (item.getQuantity() > 0)
 				{
 					final int itemId = item.getId();
-					if (itemManager.getItemStats(itemId, false) != null &&
+					if (itemManager.getItemStats(itemId) != null &&
 							!itemManager.getItemComposition(itemId).isStackable())
 					{
-						preciseWeight += itemManager.getItemStats(itemId, false).getWeight();
+						preciseWeight += itemManager.getItemStats(itemId).getWeight();
 					}
 
 					final BufferedImage image = util.getImage(item);
@@ -617,7 +618,7 @@ public class EquipmentScreenshotPlugin extends Plugin
 				final int itemId = item.getId();
 				if (config.showAllOptions() || config.showStats())
 				{
-					final ItemStats is = itemManager.getItemStats(itemId, false);
+					final ItemStats is = itemManager.getItemStats(itemId);
 					if (is == null) {
 						log.info("Error finding item stats for the {} slot with item {} using itemID: {}", eis.name().toLowerCase(), itemManager.getItemComposition(itemId).getName(), itemId);
 						log.info("This probably means the itemID is new and not yet cached in the Runelite item stats database");
@@ -657,7 +658,7 @@ public class EquipmentScreenshotPlugin extends Plugin
 						isSnowflakeMagicWeapon = SNOWFLAKE_MAGIC_WEAPONS.contains(itemId);
 					}
 
-					if (itemManager.getItemStats(itemId, false) != null &&
+					if (itemManager.getItemStats(itemId) != null &&
 							!itemManager.getItemComposition(itemId).isStackable())
 					{
 						if (WEIGHT_REDUCING_EQUIPMENT.containsKey(itemId))
@@ -665,7 +666,7 @@ public class EquipmentScreenshotPlugin extends Plugin
 							preciseWeight -= WEIGHT_REDUCING_EQUIPMENT.get(itemId);
 						}
 						else {
-							preciseWeight += itemManager.getItemStats(itemId, false).getWeight();
+							preciseWeight += itemManager.getItemStats(itemId).getWeight();
 						}
 					}
 				}
@@ -713,7 +714,7 @@ public class EquipmentScreenshotPlugin extends Plugin
 				if (weapon != null && (weapon.getId() == ItemID.TOXIC_BLOWPIPE ||
 						weapon.getId() == ItemID.TOXIC_BLOWPIPE_EMPTY) && dartID != 0)
 				{
-					final ItemStats is = itemManager.getItemStats(dartID, false);
+					final ItemStats is = itemManager.getItemStats(dartID);
 					if(is != null)
 					{
 						final ItemEquipmentStats ies = is.getEquipment();
